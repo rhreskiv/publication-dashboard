@@ -4,151 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Publication Lists Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --color-background-primary: #ffffff;
-    --color-background-secondary: #f5f5f3;
-    --color-background-tertiary: #eeede8;
-    --color-text-primary: #1a1a18;
-    --color-text-secondary: #6b6b67;
-    --color-text-tertiary: #9e9d99;
-    --color-border-tertiary: rgba(0,0,0,0.12);
-    --color-border-secondary: rgba(0,0,0,0.22);
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --color-background-primary: #1c1c1a;
-      --color-background-secondary: #252523;
-      --color-background-tertiary: #2e2e2b;
-      --color-text-primary: #f0ede8;
-      --color-text-secondary: #a0a09a;
-      --color-text-tertiary: #6b6b66;
-      --color-border-tertiary: rgba(255,255,255,0.1);
-      --color-border-secondary: rgba(255,255,255,0.2);
-    }
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); background: var(--color-background-tertiary); color: var(--color-text-primary); padding: 2rem 1.5rem; min-height: 100vh; }
-  .container { max-width: 1200px; margin: 0 auto; }
-  input, select, textarea, button {
-    font-family: var(--font-sans); font-size: 13px; color: var(--color-text-primary);
-    background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md); padding: 7px 10px; outline: none;
-  }
-  input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 2px rgba(0,0,0,0.12); }
-  button { cursor: pointer; background: var(--color-background-primary); }
-  button:hover { background: var(--color-background-secondary); }
-  button:active { transform: scale(0.98); }
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 0 1.25rem; flex-wrap: wrap; gap: 10px; }
-  .topbar-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
-  .topbar-meta { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
-  .stat { background: var(--color-background-primary); border-radius: var(--border-radius-md); padding: 12px 14px; border: 0.5px solid var(--color-border-tertiary); }
-  .stat-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .stat-value { font-size: 22px; font-weight: 500; }
-  .stat-value.sm { font-size: 15px; padding-top: 3px; }
-  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.25rem; }
-  .controls input { flex: 1; min-width: 200px; }
-  .controls select { min-width: 130px; }
-  .table-wrap { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1.5rem; }
-  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  thead tr { background: var(--color-background-secondary); }
-  th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 0.5px solid var(--color-border-tertiary); }
-  th:nth-child(1){width:18%;} th:nth-child(2){width:9%;} th:nth-child(3){width:11%;} th:nth-child(4){width:12%;} th:nth-child(5){width:28%;} th:nth-child(6){width:15%;} th:nth-child(7){width:7%;}
-  td { padding: 10px 12px; font-size: 13px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; word-break: break-word; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--color-background-secondary); }
-  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: var(--border-radius-md); white-space: nowrap; }
-  .b-optipub { background: #EEEDFE; color: #3C3489; }
-  .b-keap { background: #E1F5EE; color: #085041; }
-  .b-beehiiv { background: #FAEEDA; color: #633806; }
-  .b-custom { background: #F1EFE8; color: #444441; }
-  .lt-paid { background: #EAF3DE; color: #27500A; }
-  .lt-mirrored { background: #EEEDFE; color: #3C3489; }
-  .lt-free { background: #E6F1FB; color: #0C447C; }
-  .lt-editorial { background: #FAEEDA; color: #633806; }
-  .lt-dedicated { background: #FAECE7; color: #712B13; }
-  .seg { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 2px 7px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-  .ts { font-size: 12px; color: var(--color-text-tertiary); }
-  .auto-pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: var(--border-radius-md); background: #E1F5EE; color: #085041; white-space: nowrap; }
-  .action-btns { display: flex; gap: 6px; align-items: center; }
-  .icon-btn { background: none; border: none; cursor: pointer; color: var(--color-text-tertiary); font-size: 14px; padding: 2px 4px; border-radius: 4px; }
-  .icon-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
-  .icon-btn.del:hover { color: #A32D2D; }
-  .empty-row td { text-align: center; color: var(--color-text-tertiary); padding: 2.5rem; }
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; width: min(480px, 100%); display: flex; flex-direction: column; gap: 13px; max-height: 90vh; overflow-y: auto; }
-  .modal-title { font-size: 16px; font-weight: 500; }
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field label { font-size: 12px; color: var(--color-text-secondary); }
-  .field input, .field select, .field textarea { width: 100%; }
-  .field textarea { height: 76px; resize: vertical; }
-  .modal-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-  .custom-input-wrap { display: none; margin-top: 6px; }
-  .custom-input-wrap input { width: 100%; }
-  .date-toggle { display: flex; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; }
-  .date-toggle button { flex: 1; background: none; border: none; padding: 7px 10px; font-size: 12px; cursor: pointer; color: var(--color-text-secondary); border-radius: 0; }
-  .date-toggle button.active { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; }
-  .date-toggle button:not(:last-child) { border-right: 0.5px solid var(--color-border-secondary); }
-  .date-manual-wrap { display: none; margin-top: 6px; }
-  .date-manual-wrap input { width: 100%; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
-  .btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); padding: 7px 18px; font-size: 13px; cursor: pointer; }
-  .btn-primary:hover { opacity: 0.82; }
-  .save-indicator { font-size: 11px; color: var(--color-text-tertiary); display: none; }
-  .save-indicator.show { display: inline; }
+:root {
+  --bg: #0f0f11;
+  --surface: #17171a;
+  --surface2: #1e1e22;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0eee8;
+  --text2: #8a8880;
+  --text3: #55534f;
+  --accent: #7B6EF6;
+  --green: #3ecf8e;
+  --amber: #f5a623;
+  --radius: 10px;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;padding:2rem 1.5rem;}
+.container{max-width:1200px;margin:0 auto;}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;}
+.topbar-left h1{font-size:22px;font-weight:600;letter-spacing:-0.02em;}
+.topbar-left p{font-size:12px;color:var(--text2);margin-top:3px;font-family:var(--mono);}
+.add-btn{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:8px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.add-btn:hover{opacity:.85;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;}
+.stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
+.stat-value{font-size:24px;font-weight:600;color:var(--text);}
+.stat-value.sm{font-size:14px;padding-top:4px;font-weight:500;}
+.controls{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+.controls input{flex:1;min-width:180px;background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;}
+.controls input::placeholder{color:var(--text3);}
+.controls input:focus{border-color:var(--accent);}
+.controls select{background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;cursor:pointer;}
+.controls select:focus{border-color:var(--accent);}
+.table-wrap{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;}
+thead tr{background:var(--surface2);}
+th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;border-bottom:0.5px solid var(--border);}
+th:nth-child(1){width:19%;}th:nth-child(2){width:9%;}th:nth-child(3){width:12%;}th:nth-child(4){width:14%;}th:nth-child(5){width:29%;}th:nth-child(6){width:11%;}th:nth-child(7){width:6%;}
+td{padding:11px 14px;font-size:13px;border-bottom:0.5px solid var(--border);vertical-align:top;word-break:break-word;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background .1s;}
+tbody tr:hover{background:var(--surface2);}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 8px;border-radius:6px;white-space:nowrap;font-family:var(--mono);}
+.b-optipub{background:rgba(123,110,246,.18);color:#a89ff9;border:0.5px solid rgba(123,110,246,.3);}
+.b-keap{background:rgba(62,207,142,.15);color:#3ecf8e;border:0.5px solid rgba(62,207,142,.25);}
+.b-beehiiv{background:rgba(245,166,35,.15);color:#f5a623;border:0.5px solid rgba(245,166,35,.25);}
+.b-custom{background:rgba(255,255,255,.07);color:var(--text2);border:0.5px solid var(--border2);}
+.lt-paid{background:rgba(62,207,142,.15);color:#3ecf8e;border:0.5px solid rgba(62,207,142,.25);}
+.lt-mirrored{background:rgba(123,110,246,.18);color:#a89ff9;border:0.5px solid rgba(123,110,246,.3);}
+.lt-free{background:rgba(100,180,255,.15);color:#64b4ff;border:0.5px solid rgba(100,180,255,.25);}
+.lt-editorial{background:rgba(245,166,35,.15);color:#f5a623;border:0.5px solid rgba(245,166,35,.25);}
+.lt-dedicated{background:rgba(224,54,140,.15);color:#e87ab8;border:0.5px solid rgba(224,54,140,.25);}
+.seg{background:var(--surface2);border:0.5px solid var(--border2);border-radius:6px;padding:2px 7px;font-size:11px;font-family:var(--mono);color:var(--text2);}
+.auto-pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;background:rgba(62,207,142,.15);color:#3ecf8e;font-family:var(--mono);}
+.ts{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.action-btns{display:flex;gap:4px;}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:3px 5px;border-radius:5px;transition:all .1s;}
+.icon-btn:hover{background:var(--surface2);color:var(--text);}
+.icon-btn.del:hover{color:#ff6b6b;}
+.empty-row td{text-align:center;color:var(--text3);padding:3rem;font-family:var(--mono);font-size:12px;}
+.loading-row td{text-align:center;color:var(--text2);padding:3rem;font-size:12px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:0.5px solid var(--border2);border-radius:14px;padding:1.75rem;width:min(500px,100%);display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:17px;font-weight:600;letter-spacing:-0.01em;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);}
+.field input,.field select,.field textarea{background:var(--bg);border:0.5px solid var(--border2);border-radius:8px;padding:9px 12px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{height:80px;resize:vertical;}
+.modal-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.custom-input-wrap{display:none;margin-top:6px;}
+.date-toggle{display:flex;border:0.5px solid var(--border2);border-radius:8px;overflow:hidden;}
+.date-toggle button{flex:1;background:none;border:none;padding:8px 10px;font-size:12px;cursor:pointer;color:var(--text2);border-radius:0;font-family:var(--sans);transition:all .15s;}
+.date-toggle button.active{background:var(--surface2);color:var(--text);font-weight:500;}
+.date-toggle button:not(:last-child){border-right:0.5px solid var(--border2);}
+.date-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+.date-manual-wrap{display:none;margin-top:6px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.btn-cancel{background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;padding:8px 16px;font-family:var(--sans);font-size:13px;color:var(--text2);cursor:pointer;}
+.btn-cancel:hover{color:var(--text);}
+.btn-save{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.btn-save:hover{opacity:.85;}
+.btn-save:disabled{opacity:.4;cursor:not-allowed;}
+.sync-status{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.sync-status.saving{color:var(--amber);}
+.sync-status.saved{color:var(--green);}
 </style>
 </head>
 <body>
 <div class="container">
-
   <div class="topbar">
-    <div>
-      <div class="topbar-title">Publication lists</div>
-      <div class="topbar-meta" id="last-updated-global"></div>
+    <div class="topbar-left">
+      <h1>Publication lists</h1>
+      <p id="last-updated-global">Loading…</p>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <span class="save-indicator" id="save-indicator">Saved</span>
-      <button onclick="openModal()">+ Add publication</button>
+      <span class="sync-status" id="sync-status"></span>
+      <button class="add-btn" onclick="openModal()">+ Add publication</button>
     </div>
   </div>
 
-  <div class="stats-row" id="stats-row"></div>
+  <div class="stats" id="stats-row"></div>
 
   <div class="controls">
-    <input type="text" id="search" placeholder="Search by name, segment, or description…" oninput="render()">
-    <select id="filterPlatform" onchange="render()"><option value="">All platforms</option></select>
-    <select id="filterType" onchange="render()">
+    <input type="text" id="search" placeholder="Search by name, segment, or description…" oninput="renderTable()">
+    <select id="filterPlatform" onchange="renderTable()"><option value="">All platforms</option></select>
+    <select id="filterType" onchange="renderTable()">
       <option value="">All types</option>
-      <option>Paid</option>
-      <option>Mirrored of paid</option>
-      <option>Free</option>
-      <option>Editorial</option>
-      <option>Dedicated</option>
+      <option>Paid</option><option>Mirrored of paid</option><option>Free</option><option>Editorial</option><option>Dedicated</option>
     </select>
   </div>
 
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th>Publication name</th>
-          <th>Segment</th>
-          <th>Platform</th>
-          <th>List type</th>
-          <th>Description</th>
-          <th>Last updated</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
+      <thead><tr>
+        <th>Publication name</th><th>Segment</th><th>Platform</th><th>List type</th><th>Description</th><th>Last updated</th><th></th>
+      </tr></thead>
+      <tbody id="tbody"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
     </table>
   </div>
-
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -156,10 +136,7 @@
     <p class="modal-title" id="modal-title">Add publication</p>
     <div class="field"><label>Publication name</label><input type="text" id="fName" placeholder="e.g. Don-DTE Mirrored"></div>
     <div class="modal-row-3">
-      <div class="field">
-        <label>Segment #</label>
-        <input type="text" id="fSegment" placeholder="e.g. 287">
-      </div>
+      <div class="field"><label>Segment #</label><input type="text" id="fSegment" placeholder="e.g. 287"></div>
       <div class="field">
         <label>Platform</label>
         <select id="fPlatform" onchange="handlePlatformChange()">
@@ -168,18 +145,12 @@
           <option value="Beehiiv">Beehiiv</option>
           <option value="__custom__">Other…</option>
         </select>
-        <div class="custom-input-wrap" id="customWrap">
-          <input type="text" id="fCustomPlatform" placeholder="Platform name">
-        </div>
+        <div class="custom-input-wrap" id="customWrap"><input type="text" id="fCustomPlatform" placeholder="Platform name"></div>
       </div>
       <div class="field">
         <label>List type</label>
         <select id="fListType">
-          <option value="Paid">Paid</option>
-          <option value="Mirrored of paid">Mirrored of paid</option>
-          <option value="Free">Free</option>
-          <option value="Editorial">Editorial</option>
-          <option value="Dedicated">Dedicated</option>
+          <option>Paid</option><option>Mirrored of paid</option><option>Free</option><option>Editorial</option><option>Dedicated</option>
         </select>
       </div>
     </div>
@@ -188,54 +159,107 @@
       <label>Last updated</label>
       <div class="date-toggle">
         <button id="btn-auto" class="active" onclick="setDateMode('auto')">Automatic</button>
-        <button id="btn-manual" onclick="setDateMode('manual')">Set date manually</button>
+        <button id="btn-manual" onclick="setDateMode('manual')">Set manually</button>
       </div>
-      <div class="date-manual-wrap" id="dateManualWrap">
-        <input type="date" id="fDate">
-      </div>
-      <span style="font-size:11px;color:var(--color-text-tertiary);margin-top:4px;" id="date-hint">Automatically sets to today's date when saved.</span>
+      <div class="date-manual-wrap" id="dateManualWrap"><input type="date" id="fDate"></div>
+      <span class="date-hint" id="date-hint">Automatically sets to today's date when saved.</span>
     </div>
     <div class="modal-actions">
-      <button onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveEntry()">Save</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="btn-save" onclick="saveEntry()">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = "pub_dashboard_data";
+// ─── DATA STORAGE ───────────────────────────────────────────────────────────
+// Data is stored in a JSON file in the same GitHub repo (data.json).
+// This makes changes visible to ALL users instantly after saving.
+// To use: make sure data.json exists in your repo root (see instructions below).
 
-const DEFAULT_DATA = [
-  { id:1, name:"Don-DTE Mirrored", segment:"287", platform:"Optipub", listType:"Mirrored of paid",
-    desc:"Mirrored list of everyone who purchased the Don-DTE front-end product. Used to mirror sends and track engagement across the DTE buyer segment.",
-    updated: new Date().toISOString(), autoDate: true }
-];
+const DATA_URL = "data.json";
+const SAVE_URL = "https://api.github.com/repos/rhreskiv/publication-dashboard/contents/data.json";
 
-function loadData() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch(e) {}
-  return DEFAULT_DATA;
-}
+// ⚠️ IMPORTANT: Replace the value below with your GitHub Personal Access Token.
+// Go to github.com → Settings → Developer Settings → Personal Access Tokens → Generate new token
+// Give it "repo" permissions. Then paste it here.
+const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE";
 
-function saveData() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    const ind = document.getElementById("save-indicator");
-    ind.classList.add("show");
-    setTimeout(() => ind.classList.remove("show"), 2000);
-  } catch(e) {}
-}
-
-let data = loadData();
+let data = [];
 let editId = null;
 let dateMode = "auto";
+let fileSha = null; // GitHub needs the current file SHA to update it
 
+function setSync(state, msg) {
+  const el = document.getElementById("sync-status");
+  el.textContent = msg;
+  el.className = "sync-status" + (state ? " " + state : "");
+}
+
+async function loadData() {
+  try {
+    // Fetch with cache-busting so users always get fresh data
+    const res = await fetch(DATA_URL + "?t=" + Date.now());
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      data = [];
+    }
+  } catch(e) {
+    data = [];
+  }
+  renderAll();
+}
+
+async function persistData() {
+  setSync("saving", "Saving…");
+  try {
+    // Get the current SHA of the file (required by GitHub API to update)
+    const getRes = await fetch(SAVE_URL, {
+      headers: {
+        "Authorization": "token " + GITHUB_TOKEN,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+    const getJson = await getRes.json();
+    fileSha = getJson.sha;
+
+    // Encode data as base64
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+
+    // Push update to GitHub
+    const putRes = await fetch(SAVE_URL, {
+      method: "PUT",
+      headers: {
+        "Authorization": "token " + GITHUB_TOKEN,
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: "Update publication data",
+        content: content,
+        sha: fileSha
+      })
+    });
+
+    if (putRes.ok) {
+      setSync("saved", "Saved ✓");
+      setTimeout(() => setSync("", ""), 2500);
+    } else {
+      const err = await putRes.json();
+      console.error(err);
+      setSync("", "⚠ Save failed — check token");
+    }
+  } catch(e) {
+    console.error(e);
+    setSync("", "⚠ Save failed");
+  }
+}
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
 function fmt(d) {
   if (!d) return "—";
-  const dt = d instanceof Date ? d : new Date(d);
-  return dt.toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
+  return new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
 }
 function badgeClass(p) {
   return { Optipub:"b-optipub", Keap:"b-keap", Beehiiv:"b-beehiiv" }[p] || "b-custom";
@@ -245,10 +269,10 @@ function listTypeClass(t) {
 }
 function setDateMode(mode) {
   dateMode = mode;
-  document.getElementById("btn-auto").classList.toggle("active", mode === "auto");
-  document.getElementById("btn-manual").classList.toggle("active", mode === "manual");
-  document.getElementById("dateManualWrap").style.display = mode === "manual" ? "block" : "none";
-  document.getElementById("date-hint").textContent = mode === "auto"
+  document.getElementById("btn-auto").classList.toggle("active", mode==="auto");
+  document.getElementById("btn-manual").classList.toggle("active", mode==="manual");
+  document.getElementById("dateManualWrap").style.display = mode==="manual" ? "block" : "none";
+  document.getElementById("date-hint").textContent = mode==="auto"
     ? "Automatically sets to today's date when saved."
     : "Enter the date this publication was last updated.";
 }
@@ -258,48 +282,47 @@ function handlePlatformChange() {
 }
 function updateFilterOptions() {
   const sel = document.getElementById("filterPlatform");
-  const current = sel.value;
+  const cur = sel.value;
   const all = [...new Set(data.map(d => d.platform))].sort();
-  sel.innerHTML = '<option value="">All platforms</option>' +
-    all.map(p => `<option${current === p ? " selected" : ""}>${p}</option>`).join("");
-}
-function updateGlobalMeta() {
-  const el = document.getElementById("last-updated-global");
-  if (!data.length) { el.textContent = ""; return; }
-  const withDates = data.filter(d => d.updated);
-  if (!withDates.length) { el.textContent = ""; return; }
-  const latest = withDates.reduce((a,b) => new Date(a.updated) > new Date(b.updated) ? a : b);
-  el.textContent = "Last updated " + fmt(latest.updated);
+  sel.innerHTML = '<option value="">All platforms</option>' + all.map(p => `<option${cur===p?" selected":""}>${p}</option>`).join("");
 }
 function renderStats() {
   const platforms = {}, types = {};
   data.forEach(d => {
-    platforms[d.platform] = (platforms[d.platform] || 0) + 1;
-    types[d.listType] = (types[d.listType] || 0) + 1;
+    platforms[d.platform] = (platforms[d.platform]||0)+1;
+    types[d.listType] = (types[d.listType]||0)+1;
   });
-  const topPlat = Object.entries(platforms).sort((a,b) => b[1]-a[1])[0];
-  const topType = Object.entries(types).sort((a,b) => b[1]-a[1])[0];
+  const topPlat = Object.entries(platforms).sort((a,b)=>b[1]-a[1])[0];
+  const topType = Object.entries(types).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById("stats-row").innerHTML = `
     <div class="stat"><div class="stat-label">Total lists</div><div class="stat-value">${data.length}</div></div>
     <div class="stat"><div class="stat-label">Platforms</div><div class="stat-value">${Object.keys(platforms).length}</div></div>
-    <div class="stat"><div class="stat-label">Top platform</div><div class="stat-value sm">${topPlat ? topPlat[0] : "—"}</div></div>
-    <div class="stat"><div class="stat-label">Top type</div><div class="stat-value sm">${topType ? topType[0] : "—"}</div></div>
+    <div class="stat"><div class="stat-label">Top platform</div><div class="stat-value sm">${topPlat?topPlat[0]:"—"}</div></div>
+    <div class="stat"><div class="stat-label">Top type</div><div class="stat-value sm">${topType?topType[0]:"—"}</div></div>
   `;
+}
+function renderMeta() {
+  const el = document.getElementById("last-updated-global");
+  if (!data.length) { el.textContent = "No publications yet"; return; }
+  const withDates = data.filter(d=>d.updated);
+  if (!withDates.length) { el.textContent = ""; return; }
+  const latest = withDates.reduce((a,b)=>new Date(a.updated)>new Date(b.updated)?a:b);
+  el.textContent = "Last updated " + fmt(latest.updated);
 }
 function renderDateCell(d) {
   if (!d.updated) return '<span class="ts">—</span>';
   return d.autoDate
     ? `<div style="display:flex;flex-direction:column;gap:3px;"><span class="auto-pill">Auto</span><span class="ts">${fmt(d.updated)}</span></div>`
-    : `<div style="display:flex;flex-direction:column;gap:3px;"><span style="font-size:11px;color:var(--color-text-tertiary);">Manual</span><span class="ts">${fmt(d.updated)}</span></div>`;
+    : `<span class="ts">${fmt(d.updated)}</span>`;
 }
-function render() {
+function renderTable() {
   const q = document.getElementById("search").value.toLowerCase();
   const pf = document.getElementById("filterPlatform").value;
   const lt = document.getElementById("filterType").value;
   const filtered = data.filter(d =>
-    (!q || d.name.toLowerCase().includes(q) || d.desc.toLowerCase().includes(q) || d.segment.includes(q)) &&
-    (!pf || d.platform === pf) &&
-    (!lt || d.listType === lt)
+    (!q || d.name.toLowerCase().includes(q) || (d.desc||"").toLowerCase().includes(q) || d.segment.includes(q)) &&
+    (!pf || d.platform===pf) &&
+    (!lt || d.listType===lt)
   );
   const tbody = document.getElementById("tbody");
   if (!filtered.length) {
@@ -311,29 +334,31 @@ function render() {
         <td><span class="seg">#${d.segment}</span></td>
         <td><span class="badge ${badgeClass(d.platform)}">${d.platform}</span></td>
         <td><span class="badge ${listTypeClass(d.listType)}">${d.listType}</span></td>
-        <td style="color:var(--color-text-secondary);">${d.desc}</td>
+        <td style="color:var(--text2);font-size:12px;">${d.desc||""}</td>
         <td>${renderDateCell(d)}</td>
-        <td>
-          <div class="action-btns">
-            <button class="icon-btn" onclick="openModal(${d.id})" title="Edit">✎</button>
-            <button class="icon-btn del" onclick="deleteEntry(${d.id})" title="Remove">×</button>
-          </div>
-        </td>
+        <td><div class="action-btns">
+          <button class="icon-btn" onclick="openModal(${d.id})" title="Edit">✎</button>
+          <button class="icon-btn del" onclick="deleteEntry(${d.id})" title="Remove">×</button>
+        </div></td>
       </tr>
     `).join("");
   }
-  renderStats(); updateGlobalMeta(); updateFilterOptions();
 }
+function renderAll() {
+  renderStats(); renderMeta(); renderTable(); updateFilterOptions();
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────────────────
 function openModal(id) {
   editId = id || null;
   document.getElementById("modal-title").textContent = id ? "Edit publication" : "Add publication";
   document.getElementById("customWrap").style.display = "none";
   if (id) {
-    const d = data.find(x => x.id === id);
+    const d = data.find(x=>x.id===id);
     document.getElementById("fName").value = d.name;
     document.getElementById("fSegment").value = d.segment;
-    document.getElementById("fDesc").value = d.desc;
-    document.getElementById("fListType").value = d.listType || "Paid";
+    document.getElementById("fDesc").value = d.desc||"";
+    document.getElementById("fListType").value = d.listType||"Paid";
     const known = ["Optipub","Keap","Beehiiv"];
     if (known.includes(d.platform)) {
       document.getElementById("fPlatform").value = d.platform;
@@ -342,18 +367,12 @@ function openModal(id) {
       document.getElementById("fCustomPlatform").value = d.platform;
       document.getElementById("customWrap").style.display = "block";
     }
-    if (d.autoDate) { setDateMode("auto"); }
-    else {
-      setDateMode("manual");
-      if (d.updated) {
-        const dt = new Date(d.updated);
-        document.getElementById("fDate").value = dt.toISOString().split("T")[0];
-      }
-    }
+    if (d.autoDate) setDateMode("auto");
+    else { setDateMode("manual"); if(d.updated) document.getElementById("fDate").value = new Date(d.updated).toISOString().split("T")[0]; }
   } else {
-    ["fName","fSegment","fDesc","fCustomPlatform","fDate"].forEach(id => document.getElementById(id).value = "");
-    document.getElementById("fPlatform").value = "Optipub";
-    document.getElementById("fListType").value = "Paid";
+    ["fName","fSegment","fDesc","fCustomPlatform","fDate"].forEach(i=>document.getElementById(i).value="");
+    document.getElementById("fPlatform").value="Optipub";
+    document.getElementById("fListType").value="Paid";
     setDateMode("auto");
   }
   document.getElementById("modalOverlay").classList.add("open");
@@ -362,44 +381,45 @@ function closeModal() {
   document.getElementById("modalOverlay").classList.remove("open");
   editId = null;
 }
-function saveEntry() {
+async function saveEntry() {
   const name = document.getElementById("fName").value.trim();
   const segment = document.getElementById("fSegment").value.trim();
   const platSel = document.getElementById("fPlatform").value;
-  const platform = platSel === "__custom__" ? document.getElementById("fCustomPlatform").value.trim() : platSel;
+  const platform = platSel==="__custom__" ? document.getElementById("fCustomPlatform").value.trim() : platSel;
   const listType = document.getElementById("fListType").value;
   const desc = document.getElementById("fDesc").value.trim();
-  if (!name || !segment) { alert("Name and segment are required."); return; }
+  if (!name||!segment) { alert("Name and segment are required."); return; }
   if (!platform) { alert("Please enter a platform name."); return; }
   let updated, autoDate;
-  if (dateMode === "auto") { updated = new Date().toISOString(); autoDate = true; }
+  if (dateMode==="auto") { updated=new Date().toISOString(); autoDate=true; }
   else {
     const dateVal = document.getElementById("fDate").value;
     if (!dateVal) { alert("Please select a date."); return; }
-    updated = new Date(dateVal + "T12:00:00").toISOString(); autoDate = false;
+    updated=new Date(dateVal+"T12:00:00").toISOString(); autoDate=false;
   }
+  const btn = document.getElementById("btn-save");
+  btn.disabled=true; btn.textContent="Saving…";
   if (editId) {
-    const i = data.findIndex(d => d.id === editId);
-    data[i] = { ...data[i], name, segment, platform, listType, desc: desc || "No description provided.", updated, autoDate };
+    const i = data.findIndex(d=>d.id===editId);
+    data[i] = {...data[i], name, segment, platform, listType, desc:desc||"No description provided.", updated, autoDate};
   } else {
-    data.push({ id: Date.now(), name, segment, platform, listType, desc: desc || "No description provided.", updated, autoDate });
+    data.push({id:Date.now(), name, segment, platform, listType, desc:desc||"No description provided.", updated, autoDate});
   }
-  saveData();
-  closeModal();
-  render();
+  await persistData();
+  btn.disabled=false; btn.textContent="Save";
+  closeModal(); renderAll();
 }
-function deleteEntry(id) {
+async function deleteEntry(id) {
   if (!confirm("Remove this publication?")) return;
-  data = data.filter(d => d.id !== id);
-  saveData();
-  render();
+  data = data.filter(d=>d.id!==id);
+  await persistData();
+  renderAll();
 }
-
 document.getElementById("modalOverlay").addEventListener("click", function(e) {
-  if (e.target === this) closeModal();
+  if (e.target===this) closeModal();
 });
 
-render();
+loadData();
 </script>
 </body>
 </html>
