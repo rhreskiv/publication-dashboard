@@ -259,4 +259,126 @@ function renderStats() {
     <div class="stat"><div class="stat-label">Total lists</div><div class="stat-value">${data.length}</div></div>
     <div class="stat"><div class="stat-label">Platforms</div><div class="stat-value">${Object.keys(platforms).length}</div></div>
     <div class="stat"><div class="stat-label">Top platform</div><div class="stat-value sm">${topPlat?topPlat[0]:"—"}</div></div>
-    <div class="stat"><div class="stat-label">
+    <div class="stat"><div class="stat-label">Top type</div><div class="stat-value sm">${topType?topType[0]:"—"}</div></div>
+  `;
+}
+function renderMeta() {
+  const el = document.getElementById("last-updated-global");
+  if (!data.length) { el.textContent = "No publications yet"; return; }
+  const withDates = data.filter(d=>d.updated);
+  if (!withDates.length) { el.textContent = ""; return; }
+  const latest = withDates.reduce((a,b)=>new Date(a.updated)>new Date(b.updated)?a:b);
+  el.textContent = "Last updated " + fmt(latest.updated);
+}
+function renderDateCell(d) {
+  if (!d.updated) return '<span class="ts">—</span>';
+  return d.autoDate
+    ? `<div style="display:flex;flex-direction:column;gap:3px;"><span class="auto-pill">Auto</span><span class="ts">${fmt(d.updated)}</span></div>`
+    : `<span class="ts">${fmt(d.updated)}</span>`;
+}
+function renderTable() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const pf = document.getElementById("filterPlatform").value;
+  const lt = document.getElementById("filterType").value;
+  const filtered = data.filter(d =>
+    (!q || d.name.toLowerCase().includes(q) || (d.desc||"").toLowerCase().includes(q) || d.segment.includes(q)) &&
+    (!pf || d.platform===pf) &&
+    (!lt || d.listType===lt)
+  );
+  const tbody = document.getElementById("tbody");
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No publications match your filters.</td></tr>`;
+  } else {
+    tbody.innerHTML = filtered.map(d => `
+      <tr>
+        <td style="font-weight:500;">${d.name}</td>
+        <td><span class="seg">#${d.segment}</span></td>
+        <td><span class="badge ${badgeClass(d.platform)}">${d.platform}</span></td>
+        <td><span class="badge ${listTypeClass(d.listType)}">${d.listType}</span></td>
+        <td style="color:var(--text2);font-size:12px;">${d.desc||""}</td>
+        <td>${renderDateCell(d)}</td>
+        <td><div class="action-btns">
+          <button class="icon-btn" onclick="openModal(${d.id})" title="Edit">✎</button>
+          <button class="icon-btn del" onclick="deleteEntry(${d.id})" title="Remove">×</button>
+        </div></td>
+      </tr>
+    `).join("");
+  }
+}
+function renderAll() {
+  renderStats(); renderMeta(); renderTable(); updateFilterOptions();
+}
+function openModal(id) {
+  editId = id || null;
+  document.getElementById("modal-title").textContent = id ? "Edit publication" : "Add publication";
+  document.getElementById("customWrap").style.display = "none";
+  if (id) {
+    const d = data.find(x=>x.id===id);
+    document.getElementById("fName").value = d.name;
+    document.getElementById("fSegment").value = d.segment;
+    document.getElementById("fDesc").value = d.desc||"";
+    document.getElementById("fListType").value = d.listType||"Paid";
+    const known = ["Optipub","Keap","Beehiiv"];
+    if (known.includes(d.platform)) {
+      document.getElementById("fPlatform").value = d.platform;
+    } else {
+      document.getElementById("fPlatform").value = "__custom__";
+      document.getElementById("fCustomPlatform").value = d.platform;
+      document.getElementById("customWrap").style.display = "block";
+    }
+    if (d.autoDate) setDateMode("auto");
+    else { setDateMode("manual"); if(d.updated) document.getElementById("fDate").value = new Date(d.updated).toISOString().split("T")[0]; }
+  } else {
+    ["fName","fSegment","fDesc","fCustomPlatform","fDate"].forEach(i=>document.getElementById(i).value="");
+    document.getElementById("fPlatform").value="Optipub";
+    document.getElementById("fListType").value="Paid";
+    setDateMode("auto");
+  }
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modalOverlay").classList.remove("open");
+  editId = null;
+}
+async function saveEntry() {
+  const name = document.getElementById("fName").value.trim();
+  const segment = document.getElementById("fSegment").value.trim();
+  const platSel = document.getElementById("fPlatform").value;
+  const platform = platSel==="__custom__" ? document.getElementById("fCustomPlatform").value.trim() : platSel;
+  const listType = document.getElementById("fListType").value;
+  const desc = document.getElementById("fDesc").value.trim();
+  if (!name||!segment) { alert("Name and segment are required."); return; }
+  if (!platform) { alert("Please enter a platform name."); return; }
+  let updated, autoDate;
+  if (dateMode==="auto") { updated=new Date().toISOString(); autoDate=true; }
+  else {
+    const dateVal = document.getElementById("fDate").value;
+    if (!dateVal) { alert("Please select a date."); return; }
+    updated=new Date(dateVal+"T12:00:00").toISOString(); autoDate=false;
+  }
+  const btn = document.getElementById("btn-save");
+  btn.disabled=true; btn.textContent="Saving…";
+  if (editId) {
+    const i = data.findIndex(d=>d.id===editId);
+    data[i] = {...data[i], name, segment, platform, listType, desc:desc||"No description provided.", updated, autoDate};
+  } else {
+    data.push({id:Date.now(), name, segment, platform, listType, desc:desc||"No description provided.", updated, autoDate});
+  }
+  await persistData();
+  btn.disabled=false; btn.textContent="Save";
+  closeModal(); renderAll();
+}
+async function deleteEntry(id) {
+  if (!confirm("Remove this publication?")) return;
+  data = data.filter(d=>d.id!==id);
+  await persistData();
+  renderAll();
+}
+document.getElementById("modalOverlay").addEventListener("click", function(e) {
+  if (e.target===this) closeModal();
+});
+
+loadData();
+</script>
+</body>
+</html>
