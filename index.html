@@ -102,7 +102,7 @@ tbody tr:hover{background:var(--surface2);}
   <div class="topbar">
     <div class="topbar-left">
       <h1>Publication lists</h1>
-      <p id="last-updated-global">Loading…</p>
+      <p id="last-updated-global">Loading...</p>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="sync-status" id="sync-status"></span>
@@ -111,19 +111,29 @@ tbody tr:hover{background:var(--surface2);}
   </div>
   <div class="stats" id="stats-row"></div>
   <div class="controls">
-    <input type="text" id="search" placeholder="Search by name, segment, or description…" oninput="renderTable()">
+    <input type="text" id="search" placeholder="Search by name, segment, or description..." oninput="renderTable()">
     <select id="filterPlatform" onchange="renderTable()"><option value="">All platforms</option></select>
     <select id="filterType" onchange="renderTable()">
       <option value="">All types</option>
-      <option>Paid</option><option>Mirrored of paid</option><option>Free</option><option>Editorial</option><option>Dedicated</option>
+      <option>Paid</option>
+      <option>Mirrored of paid</option>
+      <option>Free</option>
+      <option>Editorial</option>
+      <option>Dedicated</option>
     </select>
   </div>
   <div class="table-wrap">
     <table>
       <thead><tr>
-        <th>Publication name</th><th>Segment</th><th>Platform</th><th>List type</th><th>Description</th><th>Last updated</th><th></th>
+        <th>Publication name</th>
+        <th>Segment</th>
+        <th>Platform</th>
+        <th>List type</th>
+        <th>Description</th>
+        <th>Last updated</th>
+        <th></th>
       </tr></thead>
-      <tbody id="tbody"><tr class="loading-row"><td colspan="7">Loading…</td></tr></tbody>
+      <tbody id="tbody"><tr class="loading-row"><td colspan="7">Loading...</td></tr></tbody>
     </table>
   </div>
 </div>
@@ -140,14 +150,18 @@ tbody tr:hover{background:var(--surface2);}
           <option value="Optipub">Optipub</option>
           <option value="Keap">Keap</option>
           <option value="Beehiiv">Beehiiv</option>
-          <option value="__custom__">Other…</option>
+          <option value="__custom__">Other...</option>
         </select>
         <div class="custom-input-wrap" id="customWrap"><input type="text" id="fCustomPlatform" placeholder="Platform name"></div>
       </div>
       <div class="field">
         <label>List type</label>
         <select id="fListType">
-          <option>Paid</option><option>Mirrored of paid</option><option>Free</option><option>Editorial</option><option>Dedicated</option>
+          <option>Paid</option>
+          <option>Mirrored of paid</option>
+          <option>Free</option>
+          <option>Editorial</option>
+          <option>Dedicated</option>
         </select>
       </div>
     </div>
@@ -169,213 +183,275 @@ tbody tr:hover{background:var(--surface2);}
 </div>
 
 <script>
-const BIN_ID = "69e7a7d236566621a8d89eb5";
-const API_KEY = "$2a$10$Tym51vzh7DLN2G.HFzWp4eyAKBleCcC8Hxm91/18S/9nGjRcjNVUm";
-const BIN_URL = "https://api.jsonbin.io/v3/b/" + BIN_ID;
-
-let data = [];
-let editId = null;
-let dateMode = "auto";
+var BIN_ID = "69e7a7d236566621a8d89eb5";
+var API_KEY = "$2a$10$Tym51vzh7DLN2G.HFzWp4eyAKBleCcC8Hxm91/18S/9nGjRcjNVUm";
+var BIN_URL = "https://api.jsonbin.io/v3/b/" + BIN_ID;
+var data = [];
+var editId = null;
+var dateMode = "auto";
 
 function setSync(state, msg) {
-  const el = document.getElementById("sync-status");
+  var el = document.getElementById("sync-status");
   el.textContent = msg;
   el.className = "sync-status" + (state ? " " + state : "");
 }
 
-async function loadData() {
-  try {
-    const res = await fetch(BIN_URL + "/latest", {
-      headers: { "X-Access-Key": API_KEY }
-    });
-    const json = await res.json();
+function loadData() {
+  fetch(BIN_URL + "/latest", {
+    headers: { "X-Access-Key": API_KEY }
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(json) {
     data = Array.isArray(json.record) ? json.record : [];
-  } catch(e) {
+    renderAll();
+  })
+  .catch(function() {
     data = [];
-  }
-  renderAll();
+    renderAll();
+  });
 }
 
-async function persistData() {
-  setSync("saving", "Saving…");
-  try {
-    const res = await fetch(BIN_URL, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Access-Key": API_KEY
-      },
-      body: JSON.stringify(data)
-    });
+function persistData() {
+  setSync("saving", "Saving...");
+  fetch(BIN_URL, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Access-Key": API_KEY
+    },
+    body: JSON.stringify(data)
+  })
+  .then(function(res) {
     if (res.ok) {
-      setSync("saved", "Saved ✓");
-      setTimeout(() => setSync("", ""), 2500);
+      setSync("saved", "Saved");
+      setTimeout(function() { setSync("", ""); }, 2500);
     } else {
-      setSync("", "⚠ Save failed");
+      setSync("", "Save failed");
     }
-  } catch(e) {
-    setSync("", "⚠ Save failed");
-  }
+  })
+  .catch(function() {
+    setSync("", "Save failed");
+  });
 }
 
 function fmt(d) {
-  if (!d) return "—";
+  if (!d) return "-";
   return new Date(d).toLocaleDateString("en-US", { month:"short", day:"numeric", year:"numeric" });
 }
+
 function badgeClass(p) {
-  return { Optipub:"b-optipub", Keap:"b-keap", Beehiiv:"b-beehiiv" }[p] || "b-custom";
+  if (p === "Optipub") return "b-optipub";
+  if (p === "Keap") return "b-keap";
+  if (p === "Beehiiv") return "b-beehiiv";
+  return "b-custom";
 }
+
 function listTypeClass(t) {
-  return { "Paid":"lt-paid","Mirrored of paid":"lt-mirrored","Free":"lt-free","Editorial":"lt-editorial","Dedicated":"lt-dedicated" }[t] || "b-custom";
+  if (t === "Paid") return "lt-paid";
+  if (t === "Mirrored of paid") return "lt-mirrored";
+  if (t === "Free") return "lt-free";
+  if (t === "Editorial") return "lt-editorial";
+  if (t === "Dedicated") return "lt-dedicated";
+  return "b-custom";
 }
+
 function setDateMode(mode) {
   dateMode = mode;
-  document.getElementById("btn-auto").classList.toggle("active", mode==="auto");
-  document.getElementById("btn-manual").classList.toggle("active", mode==="manual");
-  document.getElementById("dateManualWrap").style.display = mode==="manual" ? "block" : "none";
-  document.getElementById("date-hint").textContent = mode==="auto"
+  document.getElementById("btn-auto").className = mode === "auto" ? "active" : "";
+  document.getElementById("btn-manual").className = mode === "manual" ? "active" : "";
+  document.getElementById("dateManualWrap").style.display = mode === "manual" ? "block" : "none";
+  document.getElementById("date-hint").textContent = mode === "auto"
     ? "Automatically sets to today's date when saved."
     : "Enter the date this publication was last updated.";
 }
+
 function handlePlatformChange() {
   document.getElementById("customWrap").style.display =
     document.getElementById("fPlatform").value === "__custom__" ? "block" : "none";
 }
+
 function updateFilterOptions() {
-  const sel = document.getElementById("filterPlatform");
-  const cur = sel.value;
-  const all = [...new Set(data.map(d => d.platform))].sort();
-  sel.innerHTML = '<option value="">All platforms</option>' + all.map(p => `<option${cur===p?" selected":""}>${p}</option>`).join("");
-}
-function renderStats() {
-  const platforms = {}, types = {};
-  data.forEach(d => {
-    platforms[d.platform] = (platforms[d.platform]||0)+1;
-    types[d.listType] = (types[d.listType]||0)+1;
+  var sel = document.getElementById("filterPlatform");
+  var cur = sel.value;
+  var all = [];
+  data.forEach(function(d) {
+    if (all.indexOf(d.platform) === -1) all.push(d.platform);
   });
-  const topPlat = Object.entries(platforms).sort((a,b)=>b[1]-a[1])[0];
-  const topType = Object.entries(types).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById("stats-row").innerHTML = `
-    <div class="stat"><div class="stat-label">Total lists</div><div class="stat-value">${data.length}</div></div>
-    <div class="stat"><div class="stat-label">Platforms</div><div class="stat-value">${Object.keys(platforms).length}</div></div>
-    <div class="stat"><div class="stat-label">Top platform</div><div class="stat-value sm">${topPlat?topPlat[0]:"—"}</div></div>
-    <div class="stat"><div class="stat-label">Top type</div><div class="stat-value sm">${topType?topType[0]:"—"}</div></div>
-  `;
+  all.sort();
+  sel.innerHTML = '<option value="">All platforms</option>';
+  all.forEach(function(p) {
+    sel.innerHTML += '<option' + (cur === p ? ' selected' : '') + '>' + p + '</option>';
+  });
 }
+
+function renderStats() {
+  var platforms = {}, types = {};
+  data.forEach(function(d) {
+    platforms[d.platform] = (platforms[d.platform] || 0) + 1;
+    types[d.listType] = (types[d.listType] || 0) + 1;
+  });
+  var topPlat = Object.keys(platforms).sort(function(a,b){ return platforms[b]-platforms[a]; })[0];
+  var topType = Object.keys(types).sort(function(a,b){ return types[b]-types[a]; })[0];
+  document.getElementById("stats-row").innerHTML =
+    '<div class="stat"><div class="stat-label">Total lists</div><div class="stat-value">' + data.length + '</div></div>' +
+    '<div class="stat"><div class="stat-label">Platforms</div><div class="stat-value">' + Object.keys(platforms).length + '</div></div>' +
+    '<div class="stat"><div class="stat-label">Top platform</div><div class="stat-value sm">' + (topPlat || '-') + '</div></div>' +
+    '<div class="stat"><div class="stat-label">Top type</div><div class="stat-value sm">' + (topType || '-') + '</div></div>';
+}
+
 function renderMeta() {
-  const el = document.getElementById("last-updated-global");
+  var el = document.getElementById("last-updated-global");
   if (!data.length) { el.textContent = "No publications yet"; return; }
-  const withDates = data.filter(d=>d.updated);
+  var withDates = data.filter(function(d) { return d.updated; });
   if (!withDates.length) { el.textContent = ""; return; }
-  const latest = withDates.reduce((a,b)=>new Date(a.updated)>new Date(b.updated)?a:b);
+  var latest = withDates.reduce(function(a,b) { return new Date(a.updated) > new Date(b.updated) ? a : b; });
   el.textContent = "Last updated " + fmt(latest.updated);
 }
+
 function renderDateCell(d) {
-  if (!d.updated) return '<span class="ts">—</span>';
-  return d.autoDate
-    ? `<div style="display:flex;flex-direction:column;gap:3px;"><span class="auto-pill">Auto</span><span class="ts">${fmt(d.updated)}</span></div>`
-    : `<span class="ts">${fmt(d.updated)}</span>`;
-}
-function renderTable() {
-  const q = document.getElementById("search").value.toLowerCase();
-  const pf = document.getElementById("filterPlatform").value;
-  const lt = document.getElementById("filterType").value;
-  const filtered = data.filter(d =>
-    (!q || d.name.toLowerCase().includes(q) || (d.desc||"").toLowerCase().includes(q) || d.segment.includes(q)) &&
-    (!pf || d.platform===pf) &&
-    (!lt || d.listType===lt)
-  );
-  const tbody = document.getElementById("tbody");
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No publications match your filters.</td></tr>`;
-  } else {
-    tbody.innerHTML = filtered.map(d => `
-      <tr>
-        <td style="font-weight:500;">${d.name}</td>
-        <td><span class="seg">#${d.segment}</span></td>
-        <td><span class="badge ${badgeClass(d.platform)}">${d.platform}</span></td>
-        <td><span class="badge ${listTypeClass(d.listType)}">${d.listType}</span></td>
-        <td style="color:var(--text2);font-size:12px;">${d.desc||""}</td>
-        <td>${renderDateCell(d)}</td>
-        <td><div class="action-btns">
-          <button class="icon-btn" onclick="openModal(${d.id})" title="Edit">✎</button>
-          <button class="icon-btn del" onclick="deleteEntry(${d.id})" title="Remove">×</button>
-        </div></td>
-      </tr>
-    `).join("");
+  if (!d.updated) return '<span class="ts">-</span>';
+  if (d.autoDate) {
+    return '<div style="display:flex;flex-direction:column;gap:3px;"><span class="auto-pill">Auto</span><span class="ts">' + fmt(d.updated) + '</span></div>';
   }
+  return '<span class="ts">' + fmt(d.updated) + '</span>';
 }
+
+function renderTable() {
+  var q = document.getElementById("search").value.toLowerCase();
+  var pf = document.getElementById("filterPlatform").value;
+  var lt = document.getElementById("filterType").value;
+  var filtered = data.filter(function(d) {
+    return (!q || d.name.toLowerCase().indexOf(q) > -1 || (d.desc||"").toLowerCase().indexOf(q) > -1 || d.segment.indexOf(q) > -1) &&
+           (!pf || d.platform === pf) &&
+           (!lt || d.listType === lt);
+  });
+  var tbody = document.getElementById("tbody");
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No publications match your filters.</td></tr>';
+    return;
+  }
+  var html = "";
+  filtered.forEach(function(d) {
+    html += '<tr>' +
+      '<td style="font-weight:500;">' + d.name + '</td>' +
+      '<td><span class="seg">#' + d.segment + '</span></td>' +
+      '<td><span class="badge ' + badgeClass(d.platform) + '">' + d.platform + '</span></td>' +
+      '<td><span class="badge ' + listTypeClass(d.listType) + '">' + d.listType + '</span></td>' +
+      '<td style="color:var(--text2);font-size:12px;">' + (d.desc||"") + '</td>' +
+      '<td>' + renderDateCell(d) + '</td>' +
+      '<td><div class="action-btns">' +
+        '<button class="icon-btn" onclick="openModal(' + d.id + ')" title="Edit">&#9998;</button>' +
+        '<button class="icon-btn del" onclick="deleteEntry(' + d.id + ')" title="Remove">&#215;</button>' +
+      '</div></td>' +
+    '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
 function renderAll() {
-  renderStats(); renderMeta(); renderTable(); updateFilterOptions();
+  renderStats();
+  renderMeta();
+  renderTable();
+  updateFilterOptions();
 }
+
 function openModal(id) {
   editId = id || null;
   document.getElementById("modal-title").textContent = id ? "Edit publication" : "Add publication";
   document.getElementById("customWrap").style.display = "none";
   if (id) {
-    const d = data.find(x=>x.id===id);
+    var d = null;
+    for (var i = 0; i < data.length; i++) { if (data[i].id === id) { d = data[i]; break; } }
     document.getElementById("fName").value = d.name;
     document.getElementById("fSegment").value = d.segment;
-    document.getElementById("fDesc").value = d.desc||"";
-    document.getElementById("fListType").value = d.listType||"Paid";
-    const known = ["Optipub","Keap","Beehiiv"];
-    if (known.includes(d.platform)) {
+    document.getElementById("fDesc").value = d.desc || "";
+    document.getElementById("fListType").value = d.listType || "Paid";
+    var known = ["Optipub","Keap","Beehiiv"];
+    if (known.indexOf(d.platform) > -1) {
       document.getElementById("fPlatform").value = d.platform;
     } else {
       document.getElementById("fPlatform").value = "__custom__";
       document.getElementById("fCustomPlatform").value = d.platform;
       document.getElementById("customWrap").style.display = "block";
     }
-    if (d.autoDate) setDateMode("auto");
-    else { setDateMode("manual"); if(d.updated) document.getElementById("fDate").value = new Date(d.updated).toISOString().split("T")[0]; }
+    if (d.autoDate) {
+      setDateMode("auto");
+    } else {
+      setDateMode("manual");
+      if (d.updated) document.getElementById("fDate").value = new Date(d.updated).toISOString().split("T")[0];
+    }
   } else {
-    ["fName","fSegment","fDesc","fCustomPlatform","fDate"].forEach(i=>document.getElementById(i).value="");
-    document.getElementById("fPlatform").value="Optipub";
-    document.getElementById("fListType").value="Paid";
+    document.getElementById("fName").value = "";
+    document.getElementById("fSegment").value = "";
+    document.getElementById("fDesc").value = "";
+    document.getElementById("fCustomPlatform").value = "";
+    document.getElementById("fDate").value = "";
+    document.getElementById("fPlatform").value = "Optipub";
+    document.getElementById("fListType").value = "Paid";
     setDateMode("auto");
   }
-  document.getElementById("modalOverlay").classList.add("open");
+  document.getElementById("modalOverlay").className = "modal-overlay open";
 }
+
 function closeModal() {
-  document.getElementById("modalOverlay").classList.remove("open");
+  document.getElementById("modalOverlay").className = "modal-overlay";
   editId = null;
 }
-async function saveEntry() {
-  const name = document.getElementById("fName").value.trim();
-  const segment = document.getElementById("fSegment").value.trim();
-  const platSel = document.getElementById("fPlatform").value;
-  const platform = platSel==="__custom__" ? document.getElementById("fCustomPlatform").value.trim() : platSel;
-  const listType = document.getElementById("fListType").value;
-  const desc = document.getElementById("fDesc").value.trim();
-  if (!name||!segment) { alert("Name and segment are required."); return; }
+
+function saveEntry() {
+  var name = document.getElementById("fName").value.trim();
+  var segment = document.getElementById("fSegment").value.trim();
+  var platSel = document.getElementById("fPlatform").value;
+  var platform = platSel === "__custom__" ? document.getElementById("fCustomPlatform").value.trim() : platSel;
+  var listType = document.getElementById("fListType").value;
+  var desc = document.getElementById("fDesc").value.trim();
+  if (!name || !segment) { alert("Name and segment are required."); return; }
   if (!platform) { alert("Please enter a platform name."); return; }
-  let updated, autoDate;
-  if (dateMode==="auto") { updated=new Date().toISOString(); autoDate=true; }
-  else {
-    const dateVal = document.getElementById("fDate").value;
-    if (!dateVal) { alert("Please select a date."); return; }
-    updated=new Date(dateVal+"T12:00:00").toISOString(); autoDate=false;
-  }
-  const btn = document.getElementById("btn-save");
-  btn.disabled=true; btn.textContent="Saving…";
-  if (editId) {
-    const i = data.findIndex(d=>d.id===editId);
-    data[i] = {...data[i], name, segment, platform, listType, desc:desc||"No description provided.", updated, autoDate};
+  var updated, autoDate;
+  if (dateMode === "auto") {
+    updated = new Date().toISOString();
+    autoDate = true;
   } else {
-    data.push({id:Date.now(), name, segment, platform, listType, desc:desc||"No description provided.", updated, autoDate});
+    var dateVal = document.getElementById("fDate").value;
+    if (!dateVal) { alert("Please select a date."); return; }
+    updated = new Date(dateVal + "T12:00:00").toISOString();
+    autoDate = false;
   }
-  await persistData();
-  btn.disabled=false; btn.textContent="Save";
-  closeModal(); renderAll();
-}
-async function deleteEntry(id) {
-  if (!confirm("Remove this publication?")) return;
-  data = data.filter(d=>d.id!==id);
-  await persistData();
+  var btn = document.getElementById("btn-save");
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+  if (editId) {
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].id === editId) {
+        data[i].name = name;
+        data[i].segment = segment;
+        data[i].platform = platform;
+        data[i].listType = listType;
+        data[i].desc = desc || "No description provided.";
+        data[i].updated = updated;
+        data[i].autoDate = autoDate;
+        break;
+      }
+    }
+  } else {
+    data.push({ id: Date.now(), name: name, segment: segment, platform: platform, listType: listType, desc: desc || "No description provided.", updated: updated, autoDate: autoDate });
+  }
+  persistData();
+  btn.disabled = false;
+  btn.textContent = "Save";
+  closeModal();
   renderAll();
 }
+
+function deleteEntry(id) {
+  if (!confirm("Remove this publication?")) return;
+  data = data.filter(function(d) { return d.id !== id; });
+  persistData();
+  renderAll();
+}
+
 document.getElementById("modalOverlay").addEventListener("click", function(e) {
-  if (e.target===this) closeModal();
+  if (e.target === this) closeModal();
 });
 
 loadData();
